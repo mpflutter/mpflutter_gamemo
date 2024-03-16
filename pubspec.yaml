@@ -10,6 +10,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  audioplayers: ^5.2.0
+  cupertino_icons: ^1.0.6
+  go_router: ^13.0.0
+  logging: ^1.2.0
+  provider: ^6.0.5
+  shared_preferences: ^2.2.2
   mpflutter_core: any
   mpflutter_build_tools: any
 
@@ -28,7 +34,13 @@ flutter:
     - family: Noto Sans SC
       fonts:
         - asset: fonts/NotoSansSC-Regular.ttf
-  shaders:
-    - shaders/simple.frag
+    - family: Permanent Marker
+      fonts:
+        - asset: assets/fonts/Permanent_Marker/PermanentMarker-Regular.ttf
+  # shaders:
+  #   - shaders/simple.frag
   assets:
-    - assets/
+    # - assets/
+    - assets/images/
+    - assets/music/
+    - assets/sfx/

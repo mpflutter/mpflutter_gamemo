@@ -1,76 +1,79 @@
-import 'package:flutter/material.dart';
 import 'package:mpflutter_core/mpflutter_core.dart';
 
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'app_lifecycle/app_lifecycle.dart';
+import 'audio/audio_controller.dart';
+import 'player_progress/player_progress.dart';
+import 'router.dart';
+import 'settings/settings.dart';
+import 'style/palette.dart';
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runMPApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({
-    super.key,
-  });
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "",
-      theme: ThemeData(
-        useMaterial3: true,
-        platform: TargetPlatform.iOS,
-      ),
-      routes: {
-        '/': (context) => const HomePage(),
-      },
-    );
-  }
-}
+    return AppLifecycleObserver(
+      child: MultiProvider(
+        // This is where you add objects that you want to have available
+        // throughout your game.
+        //
+        // Every widget in the game can access these objects by calling
+        // `context.watch()` or `context.read()`.
+        // See `lib/main_menu/main_menu_screen.dart` for example usage.
+        providers: [
+          Provider(create: (context) => SettingsController()),
+          Provider(create: (context) => Palette()),
+          ChangeNotifierProvider(create: (context) => PlayerProgress()),
+          // Set up audio.
+          ProxyProvider2<AppLifecycleStateNotifier, SettingsController,
+              AudioController>(
+            create: (context) => AudioController(),
+            update: (context, lifecycleNotifier, settings, audio) {
+              audio!.attachDependencies(lifecycleNotifier, settings);
+              return audio;
+            },
+            dispose: (context, audio) => audio.dispose(),
+            // Ensures that music starts immediately.
+            lazy: false,
+          ),
+        ],
+        child: Builder(builder: (context) {
+          final palette = context.watch<Palette>();
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController animationController;
-
-  @override
-  void initState() {
-    super.initState();
-    animationController = AnimationController(
-      vsync: this,
-      lowerBound: 100,
-      upperBound: 200,
-      duration: const Duration(seconds: 2),
-    );
-    animationController.addListener(() {
-      setState(() {});
-    });
-    animationController.repeat(reverse: true);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue,
-      body: Center(
-        child: Container(
-          width: animationController.value,
-          height: animationController.value,
-          color: Colors.yellow,
-        ),
+          return MaterialApp.router(
+            title: 'My Flutter Game',
+            theme: ThemeData.from(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: palette.darkPen,
+                surface: palette.backgroundMain,
+              ),
+              textTheme: TextTheme(
+                bodyMedium: TextStyle(color: palette.ink),
+              ),
+              useMaterial3: true,
+            ).copyWith(
+              // Make buttons more fun.
+              filledButtonTheme: FilledButtonThemeData(
+                style: FilledButton.styleFrom(
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ),
+            routeInformationProvider: router.routeInformationProvider,
+            routeInformationParser: router.routeInformationParser,
+            routerDelegate: router.routerDelegate,
+          );
+        }),
       ),
     );
   }
