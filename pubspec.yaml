@@ -18,6 +18,14 @@ dependencies:
   shared_preferences: ^2.2.2
   mpflutter_core: any
   mpflutter_build_tools: any
+  mpflutter_wegame_api: any
+
+dependency_overrides: 
+  audioplayers_web:
+    git: 
+      url: https://github.com/mpflutter/audioplayers.git
+      ref: mpflutter-v5.2.1
+      path: packages/audioplayers_web
 
 dev_dependencies:
   flutter_test:
